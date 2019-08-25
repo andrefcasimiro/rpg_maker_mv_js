@@ -32,13 +32,23 @@
 
   Scene_Crafting.prototype.create = function() {
     Scene_MenuBase.prototype.create.call(this);
+
+    // Crafting List Window
     this._indexWindow = new Window_CraftingList(0, 0);
     this._indexWindow.setHandler('cancel', this.popScene.bind(this));
 
-    var indexWindowHeight = this._indexWindow.height;
+    // Ingredients List Window
+    var wy = this._indexWindow.height;
+    var ww = Graphics.boxWidth;
+    var wh = Graphics.boxHeight - wy;
+
+    this._statusWindow = new Window_Ingredients_List(0, wy, ww, wh);
     this.addWindow(this._indexWindow);
+    this.addWindow(this._statusWindow);
+    this._indexWindow.setStatusWindow(this._statusWindow);
   };
 
+  // Available craftable items
   var Window_CraftingList = function() {
     this.initialize.apply(this, arguments);
   }
@@ -75,9 +85,15 @@
 
   Window_CraftingList.prototype.updateStatus = function() {
     if (this._statusWindow) {
-      console.log('index: ', this.index());
+      var item = this._recipesList[this.index()];
+      this._statusWindow.setItem(item);
     }
   };
+
+  Window_CraftingList.prototype.setStatusWindow = function(statusWindow) {
+    this._statusWindow = statusWindow;
+    this.updateStatus();
+};
 
   // Maps all recipes in the player inventory
   Window_CraftingList.prototype.refresh = function() {
@@ -118,5 +134,54 @@
 
     this.drawItemName($dataItems[itemToCraftID], rect.x, rect.y, width);
   };
+
+  // Required ingredients for each item
+  var Window_Ingredients_List = function() {
+    this.initialize.apply(this, arguments);
+  }
+
+  Window_Ingredients_List.prototype = Object.create(Window_Base.prototype);
+  Window_Ingredients_List.prototype.constructor = Window_Ingredients_List;
+
+  Window_Ingredients_List.prototype.initialize = function(x, y, width, height) {
+    Window_Base.prototype.initialize.call(
+      this, x, y, width, height,
+    );
+  }
+
+  Window_Ingredients_List.prototype.setItem = function(item) {
+    console.log('window set item ITEM: ', item);
+
+    if (this._item !== item) {
+        this._item = item;
+        this.refresh();
+    }
+  };
+
+  Window_Ingredients_List.prototype.refresh = function() {
+    var item = this._item;
+    var x = 0;
+    var y = 0;
+    var lineHeight = this.lineHeight();
+    this.contents.clear();
+
+    console.log('item: ', item)
+
+    if (!item) {
+      return;
+    }
+    //this.drawItemName(item, x, y);
+
+    var self = this;
+    item.ingredients.forEach(function(ingredientID) {
+      var ingredient = $dataItems[ingredientID];
+
+      self.drawItemName(ingredient, x, y);
+      x = self.textPadding();
+      y = lineHeight + self.textPadding();
+    });
+  };
+
+  
 
 })();
