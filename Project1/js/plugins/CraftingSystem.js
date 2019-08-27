@@ -38,11 +38,11 @@
     this._indexWindow.setHandler('cancel', this.popScene.bind(this));
 
     // Ingredients List Window
-    var wy = this._indexWindow.height;
-    var ww = Graphics.boxWidth;
-    var wh = Graphics.boxHeight - wy;
+    var wx = this._indexWindow.width;
+    var ww = Graphics.boxWidth - wx;
+    var wh = Graphics.boxHeight;
 
-    this._statusWindow = new Window_Ingredients_List(0, wy, ww, wh);
+    this._statusWindow = new Window_Ingredients_List(wx, 0, ww, wh);
     this.addWindow(this._indexWindow);
     this.addWindow(this._statusWindow);
     this._indexWindow.setStatusWindow(this._statusWindow);
@@ -144,14 +144,14 @@
   Window_Ingredients_List.prototype.constructor = Window_Ingredients_List;
 
   Window_Ingredients_List.prototype.initialize = function(x, y, width, height) {
+    height = this.fittingHeight(10);
+
     Window_Base.prototype.initialize.call(
       this, x, y, width, height,
     );
   }
 
   Window_Ingredients_List.prototype.setItem = function(item) {
-    console.log('window set item ITEM: ', item);
-
     if (this._item !== item) {
         this._item = item;
         this.refresh();
@@ -165,23 +165,33 @@
     var lineHeight = this.lineHeight();
     this.contents.clear();
 
-    console.log('item: ', item)
-
     if (!item) {
       return;
     }
-    //this.drawItemName(item, x, y);
 
     var self = this;
+
     item.ingredients.forEach(function(ingredientID) {
+      if (!$dataItems || !$dataItems.length) {
+        return;
+      }
+
       var ingredient = $dataItems[ingredientID];
 
+      var amount = $gameParty.numItems(ingredient);
+      
+      // Ingredient Name
       self.drawItemName(ingredient, x, y);
+
+      x = self.textPadding();
+
+      // Count
+      self.drawText(`(x ${amount} available)`, x + self.textPadding() + 180, y);
+
       x = self.textPadding();
       y = lineHeight + self.textPadding();
     });
   };
 
-  
 
 })();
