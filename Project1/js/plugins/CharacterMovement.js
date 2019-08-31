@@ -134,8 +134,7 @@
             : setSheet('Run');
 
       $gamePlayer.refresh();
+      _cachedAction = action;
     }
-
-    _cachedAction = action;
   }
 })();
