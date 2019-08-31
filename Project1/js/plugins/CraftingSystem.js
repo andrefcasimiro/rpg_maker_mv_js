@@ -99,8 +99,12 @@
   Window_CraftingList.prototype.refresh = function() {
     this._recipesList = [];
 
-    $dataItems.forEach(dataItem => {
-      var note = dataItem && dataItem.note;
+    // Check all the owned items
+    var gamePartyItemIDs = Object.keys($gameParty._items);
+
+    gamePartyItemIDs.forEach(gamePartyItemID => {
+      var _item = $dataItems[gamePartyItemID]
+      var note = _item && _item.note;
 
       if (note) {
         var noteJSON = JSON.parse(note);
@@ -179,7 +183,7 @@
       var ingredient = $dataItems[ingredientID];
 
       var amount = $gameParty.numItems(ingredient);
-      
+
       // Ingredient Name
       self.drawItemName(ingredient, x, y);
 
