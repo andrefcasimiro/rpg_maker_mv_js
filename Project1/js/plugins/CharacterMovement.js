@@ -38,13 +38,10 @@
   var bank = []
 
   Object.keys(Parameters).forEach((parameterKey, index) => {
-    var _split = parameterKey.split('_')
-    var lastIndex = _split && _split[_split.length - 1]
+    var parameterKeyArray = parameterKey.split('_')
+    var lastIndex = parameterKeyArray && parameterKeyArray[parameterKeyArray.length - 1]
 
-    var isID = false
-    if (lastIndex) {
-      isID = !isNaN(lastIndex)
-    }
+    var isID = parameterKeyArray[0] === 'Actor' && !isNaN(lastIndex)
 
     if (isID) {
       bank = bank.concat({
@@ -52,16 +49,14 @@
         sheet: {},
       })
     } else {
-      // Since we cant have repeated param keys, we have to add a unique identifier at the end of each prop
-      // Which we remove here
-      var paramKey = _split
-      paramKey.length = paramKey.length - 1
-      paramKey = paramKey.join('_')
+      var key = parameterKeyArray
+      key.length = key.length - 1
+      key = key.join('_')
 
       if (bank[bank.length - 1]) {
         bank[bank.length - 1].sheet = {
           ...bank[bank.length - 1].sheet,
-          [paramKey]: Parameters[parameterKey],
+          [key]: Parameters[parameterKey],
         }
       }
     }
@@ -85,38 +80,24 @@
     managePlayerMovement();
   };
 
-  var setIdleSheet = function() {
+  var setSheet = function(action) {
     actors.forEach(function (actor, index) {
-      actor.setCharacterImage(bank[index].sheet.Idle_Character_Sheet),
-      actor.characterIndex()
-    })
-  }
-
-  var setWalkingSheet = function() {
-    actors.forEach(function (actor, index) {
-      actor.setCharacterImage(bank[index].sheet.Walking_Character_Sheet),
-      actor.characterIndex()
-    })
-  }
-
-  var setRunningSheet = function() {
-    actors.forEach(function (actor, index) {
-      actor.setCharacterImage(bank[index].sheet.Running_Character_Sheet),
+      actor.setCharacterImage(bank[index].sheet[action]),
       actor.characterIndex()
     })
   }
 
   var managePlayerMovement = function() {
-    isDashing = $gamePlayer.isDashing();
-    isWalking = !!$gamePlayer.getInputDirection();
-    isStopped = !$gamePlayer.getInputDirection() && !$gamePlayer.isMoving();
+    isDashing = (!!$gamePlayer.getInputDirection() && $gamePlayer.isDashing()) || !!$gameTemp.isDestinationValid();
+    isWalking = !!$gamePlayer.getInputDirection() && !isDashing;
+    isStopped = !isWalking && !isDashing;
 
     if (isStopped) {
-      setIdleSheet();
+      setSheet("Idle_Character_Sheet");
     } else if (isDashing) {
-      setRunningSheet();
+      setSheet("Running_Character_Sheet");
     } else if (isWalking) {
-      setWalkingSheet();
+      setSheet("Walking_Character_Sheet");
     }
 
     $gamePlayer.refresh();
