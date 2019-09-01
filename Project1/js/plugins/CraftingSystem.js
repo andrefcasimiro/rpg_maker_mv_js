@@ -100,10 +100,32 @@
   Scene_Crafting.prototype.craft = function() {
     var item = this._statusWindow._item;
 
-    console.log(item)
+    if (!hasNeccessaryItems(item)) {
+      this._commandWindow.activate(); // Very important
+      return;
+    }
 
+    // Add crafted item
+    $gameParty.gainItem($dataItems[item.itemToCraft], 1, false);
+
+    // Remove ingredients
+    item.ingredients.forEach(ingredient => $gameParty.loseItem($dataItems[ingredient], 1))
+
+    this._indexWindow.refresh();
     this._commandWindow.activate(); // Very important
   };
+
+  // Helpers
+  var hasNeccessaryItems = function(item) {
+    var hasAllIngredients = false
+    var itemsInInventory = Object.keys($gameParty._items)
+
+    item.ingredients.forEach(ingredient => {
+      hasAllIngredients = !!itemsInInventory.includes(ingredient)
+    })
+
+    return hasAllIngredients
+  }
 
 
   // Available craftable items
@@ -194,7 +216,22 @@
 
     var width = rect.width - this.textPadding();
 
-    this.drawItemName($dataItems[itemToCraftID], rect.x, rect.y, width);
+    var canCraft = hasNeccessaryItems(this._recipesList[index]);
+
+    this.drawItemName($dataItems[itemToCraftID], rect.x, rect.y, width, canCraft);
+  };
+
+  Window_CraftingList.prototype.drawItemName = function(item, x, y, width, enabled) {
+    width = width || 312;
+
+    if (item) {
+        var iconBoxWidth = Window_Base._iconWidth + 4;
+        this.resetTextColor();
+        this.changePaintOpacity(enabled);
+        this.drawIcon(item.iconIndex, x + 2, y + 2);
+        this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
+        this.resetTextColor();
+    }
   };
 
   // Required ingredients for each item
@@ -254,7 +291,4 @@
       y = lineHeight + self.textPadding();
     });
   };
-
-
-
 })();
