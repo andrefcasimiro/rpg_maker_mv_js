@@ -1,6 +1,16 @@
+
+/*:
+* @plugindesc Allow for player movement to cycle between 3 character sheets: idle, walk and run.
+* @author FBU <andrefcasimiro(at)gmail.com>
+*/
+
 (function() {
 
   var parameters = PluginManager.parameters('CraftingSystem');
+
+  var dictionary = {
+    CRAFT_COMMAND: 'craft',
+  }
 
   var _Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
@@ -46,7 +56,55 @@
     this.addWindow(this._indexWindow);
     this.addWindow(this._statusWindow);
     this._indexWindow.setStatusWindow(this._statusWindow);
+    this.createCommandWindow();
   };
+
+  //-----------------------------------------------------------------------------
+  // Window_CraftCommand
+  //
+  // The window for the crafting items command
+
+  function Window_CraftCommand() {
+    this.initialize.apply(this, arguments);
+  }
+
+  Window_CraftCommand.prototype = Object.create(Window_Command.prototype);
+  Window_CraftCommand.prototype.constructor = Window_CraftCommand;
+
+  Window_CraftCommand.prototype.initialize = function(width, purchaseOnly) {
+    this._windowWidth = width;
+    this._purchaseOnly = purchaseOnly;
+    Window_Command.prototype.initialize.call(this, 0, 0);
+  };
+
+  Window_CraftCommand.prototype.windowWidth = function() {
+    return this._windowWidth;
+  };
+
+  Window_CraftCommand.prototype.maxCols = function() {
+    return 3;
+  };
+
+  Window_CraftCommand.prototype.makeCommandList = function() {
+    this.addCommand(dictionary.CRAFT_COMMAND, 'craft', true);
+  };
+
+  Scene_Crafting.prototype.createCommandWindow = function() {
+    this._commandWindow = new Window_CraftCommand(0, 0);
+    this._commandWindow.y = this._statusWindow.height;
+
+    this._commandWindow.setHandler('craft', this.craft.bind(this));
+    this.addWindow(this._commandWindow);
+  };
+
+  Scene_Crafting.prototype.craft = function() {
+    var item = this._statusWindow._item;
+
+    console.log(item)
+
+    this._commandWindow.activate(); // Very important
+  };
+
 
   // Available craftable items
   var Window_CraftingList = function() {
@@ -68,7 +126,7 @@
     this.setTopRow(Window_CraftingList.lastTopRow);
     this.select(Window_CraftingList.lastIndex);
     this.activate();
-  }
+  };
 
   Window_CraftingList.prototype.maxCols = function() {
     return 1;
@@ -93,7 +151,7 @@
   Window_CraftingList.prototype.setStatusWindow = function(statusWindow) {
     this._statusWindow = statusWindow;
     this.updateStatus();
-};
+  };
 
   // Maps all recipes in the player inventory
   Window_CraftingList.prototype.refresh = function() {
@@ -196,6 +254,7 @@
       y = lineHeight + self.textPadding();
     });
   };
+
 
 
 })();
